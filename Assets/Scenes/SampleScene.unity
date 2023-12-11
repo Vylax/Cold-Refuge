@@ -9948,9 +9948,10 @@ GameObject:
   m_Component:
   - component: {fileID: 1683971091}
   - component: {fileID: 1683971090}
+  - component: {fileID: 1683971092}
   m_Layer: 0
   m_Name: GameManager
-  m_TagString: Untagged
+  m_TagString: GameManager
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -9982,6 +9983,30 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1683971092
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1683971089}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0e2aace4b377aa64cb60a29f6d1dc3c9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  playerBonuses: []
+  drawnBonusPool:
+  - name: 1
+    image: {fileID: 0}
+  - name: 2
+    image: {fileID: 0}
+  - name: 3
+    image: {fileID: 0}
+  - name: 4
+    image: {fileID: 0}
+  - name: 5
+    image: {fileID: 0}
 --- !u!1001 &493243011923878425
 PrefabInstance:
   m_ObjectHideFlags: 0
