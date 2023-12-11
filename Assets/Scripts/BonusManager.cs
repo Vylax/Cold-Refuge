@@ -20,14 +20,14 @@ public class BonusManager : MonoBehaviour
         new Bonus("5",null),
     }; // Your available bonuses
 
-    // TODO: REMVOE WHEN DONE TESTING
+    /*// TODO: REMVOE WHEN DONE TESTING
     private void Update()
     {
         if (Input.GetKeyDown(KeyCode.Z))
         {
-            QueueBonus(bonusPool.Normal);
+            
         }
-    }
+    }*/
 
     private IEnumerator WaitABit()
     {
@@ -83,6 +83,17 @@ public class BonusManager : MonoBehaviour
 
     void OnGUI()
     {
+        if (bonusStatus != BonusStatus.Triggered && !AdDisplay.adStarted)
+        {
+            float squareButtonSize = Screen.width / 4f;
+
+            // Display a square button at the bottom-left corner
+            if (GUI.Button(new Rect(10f, Screen.height - squareButtonSize - 10f, squareButtonSize, squareButtonSize), "Bonus"))
+            {
+                QueueBonus(bonusPool.Normal);
+            }
+        }
+
         if (bonusStatus != BonusStatus.Triggered || AdDisplay.adStarted) return;
 
         // Set up a GUIStyle for centered label and button text

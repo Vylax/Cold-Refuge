@@ -8,7 +8,7 @@ public class AdDisplay : MonoBehaviour, IUnityAdsInitializationListener, IUnityA
     // Make sure to set your Game ID in the Unity Ads settings
     private string myGameIdAndroid = "5497360";
     public string adUnitIdAndroid = "Rewarded_Android";
-    public static bool adStarted;
+    public static bool adStarted = false;
     private bool testMode = true; // TODO: Set to false for production
 
     private float waitTime = 10f;

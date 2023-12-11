@@ -9238,8 +9238,8 @@ Canvas:
   m_OverridePixelPerfect: 0
   m_SortingBucketNormalizedSize: 0
   m_AdditionalShaderChannelsFlag: 0
-  m_SortingLayerID: 0
-  m_SortingOrder: 100
+  m_SortingLayerID: 627225879
+  m_SortingOrder: 1
   m_TargetDisplay: 0
 --- !u!224 &1658718401
 RectTransform:
@@ -9949,6 +9949,8 @@ GameObject:
   - component: {fileID: 1683971091}
   - component: {fileID: 1683971090}
   - component: {fileID: 1683971092}
+  - component: {fileID: 1683971094}
+  - component: {fileID: 1683971093}
   m_Layer: 0
   m_Name: GameManager
   m_TagString: GameManager
@@ -10007,6 +10009,31 @@ MonoBehaviour:
     image: {fileID: 0}
   - name: 5
     image: {fileID: 0}
+--- !u!114 &1683971093
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1683971089}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5c83cdbd5debaa940a2d94140f0fa2a2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!114 &1683971094
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1683971089}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 074d63570737237458656bd29fd1370d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  adUnitIdAndroid: Rewarded_Android
 --- !u!1001 &493243011923878425
 PrefabInstance:
   m_ObjectHideFlags: 0
