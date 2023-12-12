@@ -15,7 +15,8 @@ public class AdDisplay : MonoBehaviour, IUnityAdsInitializationListener, IUnityA
 
     private void Start()
     {
-        Advertisement.Initialize(myGameIdAndroid, testMode);
+        adStarted = false;
+        Advertisement.Initialize(myGameIdAndroid, testMode, this);
     }
 
     /// <summary>
@@ -61,10 +62,10 @@ public class AdDisplay : MonoBehaviour, IUnityAdsInitializationListener, IUnityA
     {
         // Add your logic to change or refresh the bonus pool
         Debug.Log("Rerolling bonus pool...");
+
+        BonusManager bonusManager = GameManager.Instance.GetComponent<BonusManager>();
+        bonusManager.TriggerBonus(bonusManager.currBonusPoolTier, true);
     }
-
-
-
 
     // If the ad successfully loads, add a listener to the button and enable it:
     public void OnUnityAdsAdLoaded(string adUnitId)

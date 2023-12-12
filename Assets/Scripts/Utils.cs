@@ -1,22 +1,66 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using static Utils;
 
 public class Utils 
 {
-    public enum bonusPool { Normal, Rare, Legendary };
-    public enum BonusStatus { None, Triggered, Ad };
+    public enum BonusTier { Normal, Rare, Legendary };
+    public enum BonusStatus { None, Triggered, Ad, Drawn };
+
+    public static bool DisplayBonusSelectionUI(BonusStatus status) => (status == BonusStatus.Triggered || status == BonusStatus.Drawn) && !AdDisplay.adStarted;
+    // TODO: remove this when done testing
+    public static bool DisplayBonusTriggerButton(BonusStatus status) => status != BonusStatus.Triggered && status != BonusStatus.Drawn && !AdDisplay.adStarted;
+
+    public static List<Bonus> bonuses = new List<Bonus>()
+    {
+        new Bonus("bonus1"),
+        new Bonus("bonus2"),
+        new Bonus("bonus3"),
+        new Bonus("bonus4"),
+        new Bonus("bonus5"),
+        new Bonus("bonus6"),
+        new Bonus("bonus7"),
+        new Bonus("bonus8"),
+        new Bonus("bonus9"),
+        new Bonus("bonus10"),
+        new Bonus("bonus11"),
+        new Bonus("bonus12"),
+        new Bonus("bonus13"),
+        new Bonus("bonus14"),
+    };
 
     [System.Serializable]
     public class Bonus
     {
         public string name;
         public Texture2D image;
+        public BonusTier tier;
 
-        public Bonus(string name, Texture2D image)
+        public Bonus(string name, BonusTier tier=BonusTier.Normal)
         {
             this.name = name;
-            this.image = image;
+            this.image = Resources.Load<Texture2D>(name);
+            this.tier = tier;
+        }
+
+        // Override Equals method to define equality based on name and tier
+        public override bool Equals(object obj)
+        {
+            if (obj == null || GetType() != obj.GetType())
+            {
+                return false;
+            }
+
+            Bonus otherBonus = (Bonus)obj;
+            return name == otherBonus.name && tier == otherBonus.tier;
+        }
+
+        // Override GetHashCode to satisfy compiler warnings
+        public override int GetHashCode()
+        {
+            return HashCode.Combine(name, tier);
         }
     }
 

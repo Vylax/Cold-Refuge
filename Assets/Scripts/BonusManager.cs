@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Assertions;
 using static Utils;
+using System.Linq;
+using System;
 
 public class BonusManager : MonoBehaviour
 {
@@ -11,47 +13,33 @@ public class BonusManager : MonoBehaviour
     private Queue<System.Action> bonusQueue = new Queue<System.Action>();
 
     public List<Bonus> playerBonuses = new List<Bonus>();
-    public List<Bonus> drawnBonusPool = new List<Bonus>()
-    { 
-        new Bonus("1",null),
-        new Bonus("2",null),
-        new Bonus("3",null),
-        new Bonus("4",null),
-        new Bonus("5",null),
-    }; // Your available bonuses
+    public List<Bonus> drawnBonusPool = new List<Bonus>(); // Your available bonuses
+    public BonusTier currBonusPoolTier;
 
-    /*// TODO: REMVOE WHEN DONE TESTING
-    private void Update()
-    {
-        if (Input.GetKeyDown(KeyCode.Z))
-        {
-            
-        }
-    }*/
+    private bool wasCalledFromReroll = false;
 
-    private IEnumerator WaitABit()
+    private void Awake()
     {
-        yield return new WaitForSeconds(5);
-        BonusDone();
+        InitUI();
     }
 
+    public void TriggerBonus(BonusTier bonusPooltier, bool calledFromReroll = false)
+    {
+        bonusStatus = BonusStatus.Triggered;
 
-    public void TriggerBonus(bonusPool bonusPool) {
+        // Make sure the reroll was accounted for if it is one
+        wasCalledFromReroll = calledFromReroll;
 
-        // Do stuff here
+        // Update bonus pool tier
+        currBonusPoolTier = bonusPooltier;
 
-        // Display Bonus selection UI
-        // Note, maybe just enable the bonus selection display when bonusTriggered is set to true
+        // Drawn bonus pool here with the correct tier
+        DrawnBonusPool(5, bonusPooltier);
 
-        // Wait until player selects a bonus (or watch an add later on)
-        // Apply selected buff here
-        // Update the global bonus pool so that the buff cannot be drawn again if it is unique
-
-        // TODO: remove the intermediate coroutine when done testing and call BonusDone() directly instead
-        StartCoroutine(WaitABit());
+        // Set bonusStatus to Drawn
     }
 
-    public void BonusDone()
+    private void BonusDone()
     {
         // turn the bool back to false when we're done and process the next bonus if there is one
         //bonusTriggered = false;
@@ -60,7 +48,7 @@ public class BonusManager : MonoBehaviour
     }
 
     // Call this method to queue another call
-    public void QueueBonus(bonusPool bonusPool)
+    public void QueueBonus(BonusTier bonusPool)
     {
         bonusQueue.Enqueue(() => TriggerBonus(bonusPool));
         TryTriggerBonus();
@@ -73,76 +61,109 @@ public class BonusManager : MonoBehaviour
 
         while (bonusQueue.Count > 0)
         {
+            wasCalledFromReroll = false;
             System.Action methodToCall = bonusQueue.Dequeue();
             methodToCall?.Invoke();
-            //bonusTriggered = true;
-            bonusStatus = BonusStatus.Triggered;
             break;
         }
     }
 
+    private void ApplyBonus(Bonus bonus)
+    {
+        // Apply selected buff here
+
+        // Add bonus to the player's owned bonuses
+        playerBonuses.Add(bonus);
+
+        // Update the global bonus pool so that the buff cannot be drawn again if it is unique
+
+        // Close the bonus selection UI
+        BonusDone();
+    }
+
+    private void DrawnBonusPool(int bonusCount, BonusTier bonusPooltier)
+    {
+        List<int> indexes = GetRandomIndices();
+
+        drawnBonusPool.Clear();
+        foreach (int i in indexes)
+        {
+            drawnBonusPool.Add(bonuses[i]);
+        }
+
+        // Update the UI accordingly
+        InitUI();
+    }
+
+    private List<int> GetRandomIndices()
+    {
+        // Get a list of indices for elements in 'bonuses' that are not in 'playerBonuses'
+        List<int> availableIndices = Enumerable.Range(0, bonuses.Count)
+            .Where(i => !playerBonuses.Any(pb => pb.Equals(bonuses[i])))
+            .ToList();
+
+        // Ensure that there are at least 5 available indices
+        if (availableIndices.Count == 0)
+        {
+            throw new InvalidOperationException("No index available left.");
+        }
+
+        // Shuffle the available indices
+        availableIndices = availableIndices.OrderBy(i => Guid.NewGuid()).ToList();
+
+        // Take the first 5 indices or less if there isn't 5
+        int numRandomIndices = Math.Min(5, availableIndices.Count);
+        List<int> randomIndices = availableIndices.Take(numRandomIndices).ToList();
+
+        return randomIndices;
+    }
+
     void OnGUI()
     {
-        if (bonusStatus != BonusStatus.Triggered && !AdDisplay.adStarted)
+        // Set up a GUIStyle for centered label and button text
+        centeredLabelStyle = GUI.skin.GetStyle("Label");
+        centeredLabelStyle.alignment = TextAnchor.UpperCenter;
+
+        buttonTextStyle = new GUIStyle(GUI.skin.button);
+
+        if (DisplayBonusTriggerButton(bonusStatus))
         {
             float squareButtonSize = Screen.width / 4f;
 
             // Display a square button at the bottom-left corner
             if (GUI.Button(new Rect(10f, Screen.height - squareButtonSize - 10f, squareButtonSize, squareButtonSize), "Bonus"))
             {
-                QueueBonus(bonusPool.Normal);
+                QueueBonus(BonusTier.Normal);
             }
         }
 
-        if (bonusStatus != BonusStatus.Triggered || AdDisplay.adStarted) return;
+        if (!DisplayBonusSelectionUI(bonusStatus)) return;
 
-        // Set up a GUIStyle for centered label and button text
-        GUIStyle centeredLabelStyle = GUI.skin.GetStyle("Label");
-        centeredLabelStyle.alignment = TextAnchor.UpperCenter;
+        // Display Bonus selection UI
+        // Wait until player selects a bonus (or watch an add later on)
 
-        GUIStyle buttonTextStyle = new GUIStyle(GUI.skin.button);
-
-        // Display buttons for choosing bonuses in a circular arrangement
-        float centerX = Screen.width / 2f;
-        float centerY = Screen.height / 2f;
-        float buttonRadius = 125f; // Increased button size
-        float buttonSize = 250f; // Increased button size
-        float angleIncrement = 360f / Mathf.Min(drawnBonusPool.Count, 5);
-
-        for (int i = 0; i < Mathf.Min(drawnBonusPool.Count, 5); i++)
+        for (int i = 0; i < drawnBonusPool.Count; i++)
         {
-            float angle = i * angleIncrement - 90; // Place the first bonus at 12 o'clock
-            float buttonX = centerX + Mathf.Cos(angle * Mathf.Deg2Rad) * (buttonRadius + buttonSize);
-            float buttonY = centerY + Mathf.Sin(angle * Mathf.Deg2Rad) * (buttonRadius + buttonSize);
+            string buttonText = $"{drawnBonusPool[i].name}";
 
-            string buttonText = "Choose Bonus " + (i + 1);
-            buttonTextStyle.fontSize = CalculateFontSize(buttonText, buttonSize, buttonSize);
-
-            if (GUI.Button(new Rect(buttonX - buttonSize / 2f, buttonY - buttonSize / 2f, buttonSize, buttonSize), buttonText, buttonTextStyle))
+            if (GUI.Button(BonusButtonRect(i, buttonText), buttonText, buttonTextStyle))
             {
                 // Handle bonus selection logic here
-                playerBonuses.Add(drawnBonusPool[i]);
+                ApplyBonus(drawnBonusPool[i]);
             }
         }
 
-        // Display ad button twice as big as bonus buttons, centered below the circle
-        float adButtonWidth = 400f;
-        float adButtonHeight = 100f;
-
-        string adButtonText = "Reroll with Ad";
-        buttonTextStyle.fontSize = CalculateFontSize(adButtonText, adButtonWidth, adButtonHeight);
-
-        if (GUI.Button(new Rect(centerX - adButtonWidth / 2, centerY + (buttonRadius + buttonSize*3/2f)+25, adButtonWidth, adButtonHeight), adButtonText, buttonTextStyle))
+        // Display the reroll option only if it wasn't called before
+        if (!wasCalledFromReroll)
         {
-            // Handle ad logic and reroll bonus pool here
-            GameManager.Instance.GetComponent<AdDisplay>().TryShowAd();
-        }
+            buttonTextStyle.fontSize = CalculateFontSize(adButtonText, adButtonWidth, adButtonHeight);
 
-        // Display possessed bonuses from bottom left to bottom right
-        float labelWidth = 200;
-        float labelHeight = 25;
-        float labelSpacing = 10;
-        float boxHeight = labelHeight + 10;
+            if (GUI.Button(new Rect(centerX - adButtonWidth / 2, centerY + (buttonRadius + buttonSize * 3 / 2f) + 25, adButtonWidth, adButtonHeight), adButtonText, buttonTextStyle))
+            {
+                // Handle ad logic and reroll bonus pool here
+                GameManager.Instance.GetComponent<AdDisplay>().TryShowAd();
+            }
+        }
 
         for (int i = 0; i < playerBonuses.Count; i++)
         {
@@ -170,7 +191,57 @@ public class BonusManager : MonoBehaviour
         return fontSize - 2;
     }
 
+    GUIStyle centeredLabelStyle;
+    GUIStyle buttonTextStyle;
+    float centerX;
+    float centerY;
+    float buttonRadius;
+    float buttonSize;
+    float angleIncrement;
 
+    float adButtonWidth;
+    float adButtonHeight;
+
+    string adButtonText;
+
+    // Display possessed bonuses from bottom left to bottom right
+    float labelWidth;
+    float labelHeight;
+    float labelSpacing;
+    float boxHeight;
+
+    private void InitUI()
+    {
+        // Display buttons for choosing bonuses in a circular arrangement
+        centerX = Screen.width / 2f;
+        centerY = Screen.height / 2f;
+        buttonRadius = 125f; // Increased button size
+        buttonSize = 250f; // Increased button size
+        angleIncrement = 360f / drawnBonusPool.Count;
+
+        // Display ad button twice as big as bonus buttons, centered below the circle
+        adButtonWidth = 400f;
+        adButtonHeight = 100f;
+
+        adButtonText = "Reroll with Ad";
+
+        // Display possessed bonuses from bottom left to bottom right
+        labelWidth = 200;
+        labelHeight = 25;
+        labelSpacing = 10;
+        boxHeight = labelHeight + 10;
+    }
+
+    private Rect BonusButtonRect(int i, string buttonText)
+    {
+        float angle = i * angleIncrement - 90; // Place the first bonus at 12 o'clock
+        float buttonX = centerX + Mathf.Cos(angle * Mathf.Deg2Rad) * (buttonRadius + buttonSize);
+        float buttonY = centerY + Mathf.Sin(angle * Mathf.Deg2Rad) * (buttonRadius + buttonSize);
+
+        buttonTextStyle.fontSize = CalculateFontSize(buttonText, buttonSize, buttonSize);
+
+        return new Rect(buttonX - buttonSize / 2f, buttonY - buttonSize / 2f, buttonSize, buttonSize);
+    }
 
 
 
