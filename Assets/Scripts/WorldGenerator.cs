@@ -2,15 +2,19 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Tilemaps;
+using Pathfinding;
 
 public class WorldGenerator : MonoBehaviour
 {
     public Tilemap groundTilemap;
     public Tilemap obstacleTilemap;
+    public AstarPath astar;
 
     public TileBase[] groundTiles; // Array of ground tiles
     public TileBase[] obstacleTiles;  // Array of obstacle tiles
     public GameObject[] trees; // Array of tree prefabs
+
+    public Transform treeParent;
 
     public int chunkSize = 16;  // Size of each chunk
     public string seed = "your_seed";
@@ -33,7 +37,25 @@ public class WorldGenerator : MonoBehaviour
     {
         Random.InitState(seed.GetHashCode());
         player = GameObject.FindGameObjectWithTag("Player").transform;
+        if (!astar) astar = AstarPath.active;
         StartCoroutine(GenerateChunksAroundPlayer());
+    }
+
+    private void AddGraph(Vector3Int chunkPosition)
+    {
+        // Create a new grid graph
+        GridGraph gridGraph = astar.data.AddGraph(typeof(GridGraph)) as GridGraph;
+
+        // Configure the grid graph settings
+        gridGraph.is2D = true;
+        gridGraph.SetDimensions(chunkSize, chunkSize, 1);
+        gridGraph.collision.use2D = true;
+        gridGraph.center = chunkPosition + new Vector3(1,1,0) * (chunkSize/2f); // Set the center of the grid
+        gridGraph.collision.mask = LayerMask.GetMask("Obstacle");
+        gridGraph.collision.diameter = .95f;
+
+        // Scan the graph to generate nodes
+        AstarPath.active.Scan();
     }
 
     IEnumerator GenerateChunksAroundPlayer()
@@ -98,6 +120,9 @@ public class WorldGenerator : MonoBehaviour
                     SpriteRenderer woodRenderer = tree.transform.Find("sapin_tronc").GetComponent<SpriteRenderer>();
                     treeRenderer.sortingOrder = Mathf.FloorToInt(10000-tilePosition.y);
                     woodRenderer.sortingOrder = Mathf.FloorToInt(-10);
+
+                    // Set the tree as child of the treeParent transform
+                    tree.transform.parent = treeParent;
                 }
                 else if (RDM < obstaclePercentage)
                 {
@@ -107,5 +132,8 @@ public class WorldGenerator : MonoBehaviour
                 }
             }
         }
+
+        // Once the chunk is generated, generate the 2D nav mesh for it
+        AddGraph(chunkPosition);
     }
 }

@@ -22,19 +22,19 @@ public class ParticlePool : MonoBehaviour
         particleSystem = this.GetComponent<ParticleSystem>();
 
         ParticleSystem.MainModule mainModule = particleSystem.main;
-        mainModule.maxParticles = maxParticles; // Adjust according to performance
-        mainModule.startLifetime = particleLifetime;
+        //mainModule.maxParticles = maxParticles; // Adjust according to performance
+        //mainModule.startLifetime = particleLifetime;
 
         ParticleSystemRenderer rendererModule = particleSystem.GetComponent<ParticleSystemRenderer>();
-        rendererModule.renderMode = ParticleSystemRenderMode.Billboard; // Use Quad
+        //rendererModule.renderMode = ParticleSystemRenderMode.Billboard; // Use Quad
         //rendererModule.normalDirection = normalDirection; // Adjust based on your camera setup
-        rendererModule.material = lowResMaterial; // Use a low-res material
+        //rendererModule.material = lowResMaterial; // Use a low-res material
 
         ParticleSystem.CollisionModule collisionModule = particleSystem.collision;
-        collisionModule.enabled = false; // Disable if not needed
+        //collisionModule.enabled = false; // Disable if not needed
 
 
-        InitializePool();
+        //InitializePool();
     }
 
     void InitializePool()

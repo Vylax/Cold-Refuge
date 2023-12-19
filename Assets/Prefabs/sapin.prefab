@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 5508952679701197522}
   - component: {fileID: 1622480470932425560}
   - component: {fileID: 943400804330770778}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: sapin
   m_TagString: Tree
   m_Icon: {fileID: 0}
