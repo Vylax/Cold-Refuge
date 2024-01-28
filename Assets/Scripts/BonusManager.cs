@@ -70,12 +70,10 @@ public class BonusManager : MonoBehaviour
 
     private void ApplyBonus(Bonus bonus)
     {
-        // Apply selected buff here
+        // TODO: Apply selected buff here
 
         // Add bonus to the player's owned bonuses
         playerBonuses.Add(bonus);
-
-        // Update the global bonus pool so that the buff cannot be drawn again if it is unique
 
         // Close the bonus selection UI
         BonusDone();

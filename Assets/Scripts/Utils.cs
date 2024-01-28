@@ -9,6 +9,22 @@ public class Utils
     public enum BonusTier { Normal, Rare, Legendary };
     public enum BonusStatus { None, Triggered, Ad, Drawn };
 
+    public enum GameStatus
+    {
+        MainMenu,
+        InGame,
+        Pause,
+        IsDead,
+        GameDone,
+        Leaderboard
+    }
+
+    public enum LogInState
+    {
+        Disconnected,
+        Connected
+    }
+
     public static bool DisplayBonusSelectionUI(BonusStatus status) => (status == BonusStatus.Triggered || status == BonusStatus.Drawn) && !AdDisplay.adStarted;
     // TODO: remove this when done testing
     public static bool DisplayBonusTriggerButton(BonusStatus status) => status != BonusStatus.Triggered && status != BonusStatus.Drawn && !AdDisplay.adStarted;
