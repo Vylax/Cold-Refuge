@@ -2,7 +2,6 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using static Utils;
 
 public class Utils 
 {
@@ -19,11 +18,26 @@ public class Utils
         Leaderboard
     }
 
+    public enum CurrScreen
+    {
+        Connection,
+        MainMenu,
+        Character,
+        DailyReward,
+        Settings,
+        Game
+    }
+
     public enum LogInState
     {
         Disconnected,
+        Connecting,
+        Registering,
         Connected
     }
+
+    public static readonly string registerURL = "https://www.vylax.fr/coldrefuge/register.php";
+    public static readonly string logInURL = "https://www.vylax.fr/coldrefuge/connexion.php";
 
     public static bool DisplayBonusSelectionUI(BonusStatus status) => (status == BonusStatus.Triggered || status == BonusStatus.Drawn) && !AdDisplay.adStarted;
     // TODO: remove this when done testing
