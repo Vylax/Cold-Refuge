@@ -16,7 +16,7 @@ public class WorldGenerator : MonoBehaviour
 
     public Transform treeParent;
 
-    public int chunkSize = 16;  // Size of each chunk
+    public static int chunkSize = 14;  // Size of each chunk
     public string seed = "your_seed";
 
     [Range(0f, 100f)]
@@ -32,6 +32,9 @@ public class WorldGenerator : MonoBehaviour
 
     private Transform player;
     private HashSet<Vector3Int> generatedChunks = new HashSet<Vector3Int>();
+    private Dictionary<Vector3Int, GridGraph> graphs = new Dictionary<Vector3Int, GridGraph>();
+    private static Dictionary<Vector3Int, int> graphOffsets = new Dictionary<Vector3Int, int>();
+
 
     void Start()
     {
@@ -54,8 +57,32 @@ public class WorldGenerator : MonoBehaviour
         gridGraph.collision.mask = LayerMask.GetMask("Obstacle");
         gridGraph.collision.diameter = .95f;
 
+        // Add the graph to the dictionary
+        graphs.Add(chunkPosition, gridGraph);
+
+        // Add the graph to the dictionary along with its offset
+        graphOffsets.Add(chunkPosition, graphOffsets.Count);
+
         // Scan the graph to generate nodes
         AstarPath.active.Scan();
+    }
+
+    public static int GetGraphMask(Vector3 position)
+    {
+        Vector3Int chunkPosition = new Vector3Int(
+            Mathf.FloorToInt(position.x / chunkSize) * chunkSize,
+            Mathf.FloorToInt(position.y / chunkSize) * chunkSize,
+            0
+        );
+
+        int graphOffset;
+        if (graphOffsets.TryGetValue(chunkPosition, out graphOffset))
+        {
+            return 1 << graphOffset;
+        }
+
+        // Default to the first graph if not found
+        return 1;
     }
 
     IEnumerator GenerateChunksAroundPlayer()
@@ -79,6 +106,7 @@ public class WorldGenerator : MonoBehaviour
                     {
                         GenerateChunk(neighborChunkPosition);
                         generatedChunks.Add(neighborChunkPosition);
+
                     }
                 }
             }
@@ -87,6 +115,8 @@ public class WorldGenerator : MonoBehaviour
             yield return new WaitForSeconds(1);
         }
     }
+
+
 
 
     void GenerateChunk(Vector3Int chunkPosition)

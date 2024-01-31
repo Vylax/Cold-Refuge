@@ -16,6 +16,7 @@ public class JoystickController : MonoBehaviour
 
     private void Start()
     {
+        if (!rb) rb = GetComponent<Rigidbody2D>();
         InitJoystick();
     }
 

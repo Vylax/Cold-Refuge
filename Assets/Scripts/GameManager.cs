@@ -199,6 +199,11 @@ public class GameManager : MonoBehaviour
         sfxVolume = PlayerPrefs.GetFloat("SFXVolume", 50f);
     }
 
+    public void GameOver()
+    {
+        // TODO handle player death here
+    }
+
     // UI
 
     private Vector3 camPosConnecting = new Vector3(0, 2, -10);
