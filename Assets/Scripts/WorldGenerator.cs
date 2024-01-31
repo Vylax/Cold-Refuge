@@ -18,6 +18,7 @@ public class WorldGenerator : MonoBehaviour
 
     public static int chunkSize = 14;  // Size of each chunk
     public string seed = "your_seed";
+    public int Seed => seed.GetHashCode();
 
     [Range(0f, 100f)]
     public float obstaclePercentage = 5f;
@@ -28,6 +29,9 @@ public class WorldGenerator : MonoBehaviour
     [Range(0f, 100f)]
     public float treePercentage = 2f;
 
+    [Range(0f, 100f)]
+    public float bonusSpawnPercentage = 50f;
+
     private float RDM => Random.Range(0f, 100f);
 
     private Transform player;
@@ -35,10 +39,12 @@ public class WorldGenerator : MonoBehaviour
     private Dictionary<Vector3Int, GridGraph> graphs = new Dictionary<Vector3Int, GridGraph>();
     private static Dictionary<Vector3Int, int> graphOffsets = new Dictionary<Vector3Int, int>();
 
+    public GameObject bonusPrefab;
+
 
     void Start()
     {
-        Random.InitState(seed.GetHashCode());
+        Random.InitState(Seed);
         player = GameObject.FindGameObjectWithTag("Player").transform;
         if (!astar) astar = AstarPath.active;
         StartCoroutine(GenerateChunksAroundPlayer());
@@ -121,6 +127,7 @@ public class WorldGenerator : MonoBehaviour
 
     void GenerateChunk(Vector3Int chunkPosition)
     {
+        Vector2Int rdmFreeTile = new Vector2Int(0,0);
         for (int x = 0; x < chunkSize; x++)
         {
             for (int y = 0; y < chunkSize; y++)
@@ -159,11 +166,27 @@ public class WorldGenerator : MonoBehaviour
                     // Place obstacle
                     int obstacleTileIndex = Random.Range(0, obstacleTiles.Length);
                     obstacleTilemap.SetTile(tilePosition, obstacleTiles[obstacleTileIndex]);
+                }else if (Mathf.Sqrt(Mathf.Pow(x-chunkSize/2,2)+Mathf.Pow(y-chunkSize/2,2)) < chunkSize/2)
+                {
+                    rdmFreeTile = new Vector2Int(x,y);
                 }
             }
         }
 
+        if (ShouldSpawnItem(chunkPosition.x / chunkSize, chunkPosition.y / chunkSize)) 
+        {
+            // Spawn item
+            Instantiate(bonusPrefab, chunkPosition + new Vector3(rdmFreeTile.x, rdmFreeTile.y, 0), Quaternion.identity);
+        }
+
         // Once the chunk is generated, generate the 2D nav mesh for it
         AddGraph(chunkPosition);
+    }
+
+    bool ShouldSpawnItem(int x, int y)
+    {
+        float randomValue = RDM;//Mathf.PerlinNoise((x + Seed) * 0.1f, (y + Seed) * 0.1f) * 100.0f;
+
+        return randomValue < bonusSpawnPercentage;
     }
 }

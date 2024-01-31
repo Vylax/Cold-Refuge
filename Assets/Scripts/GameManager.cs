@@ -7,6 +7,8 @@ public class GameManager : MonoBehaviour
     // Singleton instance
     private static GameManager instance;
 
+    public BonusManager bonusManager => this.GetComponent<BonusManager>();
+
     // Property to access the singleton instance
     public static GameManager Instance
     {
@@ -224,6 +226,8 @@ public class GameManager : MonoBehaviour
     private Vector3 camPosSettings = new Vector3(7, -3.75f, -10);
     private float camSizeSettings = 3.25f;
 
+    private float camDefaultSize = 7f;
+
     public Vector3 camTargetPosition;
     public float camTargetSize;
 
@@ -289,6 +293,11 @@ public class GameManager : MonoBehaviour
                     currScreen = CurrScreen.MainMenu;
                 }
             }
+        }
+        else
+        {
+            // reset camera size
+            Camera.main.orthographicSize = camDefaultSize;
         }
     }
 

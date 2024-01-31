@@ -18,6 +18,8 @@ public class BonusManager : MonoBehaviour
 
     private bool wasCalledFromReroll = false;
 
+    public bool debug = false;
+
     private void Awake()
     {
         InitUI();
@@ -124,7 +126,7 @@ public class BonusManager : MonoBehaviour
 
         buttonTextStyle = new GUIStyle(GUI.skin.button);
 
-        if (DisplayBonusTriggerButton(bonusStatus))
+        if (debug && DisplayBonusTriggerButton(bonusStatus))
         {
             float squareButtonSize = Screen.width / 4f;
 
@@ -241,7 +243,18 @@ public class BonusManager : MonoBehaviour
         return new Rect(buttonX - buttonSize / 2f, buttonY - buttonSize / 2f, buttonSize, buttonSize);
     }
 
+    /// <summary>
+    /// Method to be called from other scripts to trigger a bonus
+    /// </summary>
+    public void PickUpBonus()
+    {
+        QueueBonus(BonusTier.Normal);
+    }
 
+    public void PickUpBonus(BonusTier tier)
+    {
+        QueueBonus(tier);
+    }
 
 
 }
