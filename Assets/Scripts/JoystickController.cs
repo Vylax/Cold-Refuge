@@ -14,6 +14,8 @@ public class JoystickController : MonoBehaviour
 
     public bool canMove = true;
 
+    private float Speed => speed * GetComponent<Player>().Speed;
+
     private void Start()
     {
         if (!rb) rb = GetComponent<Rigidbody2D>();
@@ -40,6 +42,6 @@ public class JoystickController : MonoBehaviour
     private void Move()
     {
         Vector3 direction = CustomClamp(variableJoystick.Horizontal, variableJoystick.Vertical);
-        rb.velocity = (direction.magnitude > minSpeedThreshold) ? direction * speed : Vector3.zero;
+        rb.velocity = (direction.magnitude > minSpeedThreshold) ? direction * Speed : Vector3.zero;
     }
 }

@@ -24,6 +24,8 @@ public class Enemy : MonoBehaviour
 
     public bool isKnockedBack = false;
 
+    public int scoreOnDeath = 10;
+
     private Vector3 playerPos => player.GetComponent<Collider2D>().ClosestPoint(transform.position);
 
     void Start()
@@ -127,6 +129,7 @@ public class Enemy : MonoBehaviour
         // play death animation
         GetComponent<Animator>().SetTrigger("isDead");
         GetComponent<Collider2D>().enabled = false;
+        GameManager.Instance.scoreSystem.AddScore(scoreOnDeath);
         Destroy(gameObject, 2f);
 
         // TODO: decrease WaveSystem enemy count by 1 here

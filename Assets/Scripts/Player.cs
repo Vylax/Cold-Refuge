@@ -15,6 +15,21 @@ public class Player : MonoBehaviour
     public float bladeDamages = 34f;
     public float knockbackForce = 1f;
 
+    public float speedFactor = 1f;
+    public float strengthFactor = 1f;
+    public float rangeFactor = 1f;
+    public float healthFactor = 1f;
+
+    public float Speed => speedFactor;
+    public float Strength => strengthFactor;
+    public float Range => rangeFactor * bladeRange;
+    public float Health => healthFactor * _health;
+
+    private void Start()
+    {
+        ResetBonuses();
+    }
+
     public void TakeDamage(int damage)
     {
         _health -= damage;
@@ -38,9 +53,9 @@ public class Player : MonoBehaviour
         _health += amount;
         Debug.Log("Player healed " + amount + " health. Health is now " + _health);
 
-        if (_health > 100)
+        if (_health > 100 * healthFactor)
         {
-            _health = 100;
+            _health = Mathf.FloorToInt(100 * healthFactor);
         }
     }
 
@@ -50,6 +65,8 @@ public class Player : MonoBehaviour
 
         GameManager.Instance.GameOver();
     }
+
+    public void ResetBonuses() => (speedFactor, strengthFactor, rangeFactor, healthFactor) = (1f, 1f, 1f, 1f);
 
     private void FixedUpdate()
     {
@@ -70,21 +87,22 @@ public class Player : MonoBehaviour
         // if enemies are within bladerange and player is not attacking, attack automatically
         if (!isAttacking)
         {
-            Collider2D[] hitEnemies = GetEnemiesWithinRange(bladeRange);
+            Collider2D[] hitEnemies = GetEnemiesWithinRange(Range);
             if (hitEnemies.Length > 0)
             {
-                StartCoroutine(Attack(hitEnemies));
+                StartCoroutine(Attack());
             }
         }
 
 
     }
 
-    private IEnumerator Attack(Collider2D[] hitEnemies)
+    private IEnumerator Attack()
     {
         isAttacking = true;
         GetComponent<Animator>().SetTrigger("Attack");
 
+        Collider2D[] hitEnemies = GetEnemiesWithinRange(Range);
         foreach (Collider2D enemy in hitEnemies)
         {
             // skip enemy if it's dead
@@ -112,7 +130,7 @@ public class Player : MonoBehaviour
     {
         yield return new WaitForSeconds(0.3f);
         enemy.isKnockedBack = true;
-        enemy.TakeDamage(bladeDamages);
+        enemy.TakeDamage(Strength * bladeDamages);
         float knockbackDuration = 0.2f;
         float timer = 0;
 

@@ -25,7 +25,8 @@ public class Utils
         Character,
         DailyReward,
         Settings,
-        Game
+        Game,
+        GameOver,
     }
 
     public enum LogInState
@@ -48,20 +49,20 @@ public class Utils
 
     public static List<Bonus> bonuses = new List<Bonus>()
     {
-        new Bonus("bonus1"),
-        new Bonus("bonus2"),
-        new Bonus("bonus3"),
-        new Bonus("bonus4"),
-        new Bonus("bonus5"),
-        new Bonus("bonus6"),
-        new Bonus("bonus7"),
-        new Bonus("bonus8"),
-        new Bonus("bonus9"),
-        new Bonus("bonus10"),
-        new Bonus("bonus11"),
-        new Bonus("bonus12"),
-        new Bonus("bonus13"),
-        new Bonus("bonus14"),
+        new Bonus("speed"),
+        new Bonus("health"),
+        new Bonus("strength"),
+        new Bonus("range"),
+        new Bonus("speed"),
+        new Bonus("health"),
+        new Bonus("strength"),
+        new Bonus("range"),
+        new Bonus("speed"),
+        new Bonus("health"),
+        new Bonus("strength"),
+        new Bonus("range"),
+        //new Bonus("bonus13"),
+        //new Bonus("bonus14"),
     };
 
     [System.Serializable]
@@ -74,7 +75,7 @@ public class Utils
         public Bonus(string name, BonusTier tier=BonusTier.Normal)
         {
             this.name = name;
-            this.image = Resources.Load<Texture2D>(name);
+            this.image = SpriteToTexture2D(Resources.Load<Sprite>("Bonus/" + name));
             this.tier = tier;
         }
 

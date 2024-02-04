@@ -65,6 +65,11 @@ public class SceneLoader : MonoBehaviour
             }
         }
 
+        /*if(sceneName == "enemyTest")
+        {
+            GameManager.Instance.GetComponent<WorldGenerator>().StartGen();
+        }*/
+
         // Reset isLoading
         isLoading = false;
     }

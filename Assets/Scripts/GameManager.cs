@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 using static Utils;
 
@@ -37,7 +38,7 @@ public class GameManager : MonoBehaviour
         // Ensure there is only one instance of GameManager in the scene
         if (instance != null && instance != this)
         {
-            Destroy(this);
+            Destroy(this.gameObject);
         }
         else
         {
@@ -76,6 +77,8 @@ public class GameManager : MonoBehaviour
     public float serverTimeout = 10f;
 
     public GameObject spinWheelPrefab;
+
+    public ScoreSystem scoreSystem;
 
     private void TryConnect()
     {
@@ -316,9 +319,45 @@ public class GameManager : MonoBehaviour
         sfxVolume = PlayerPrefs.GetFloat("SFXVolume", 50f);
     }
 
+    int currentScore;
+    int highScore;
+
     public void GameOver()
     {
         // TODO handle player death here
+
+        // Get the high score from the ScoreSystem
+        int[] highScoreArray = scoreSystem.GetHighScore();
+        currentScore = highScoreArray[0];
+        highScore = highScoreArray[1];
+
+        // Pause game
+        Time.timeScale = 0f;
+
+        // Set screen to game over screen
+        currScreen = CurrScreen.GameOver;
+    }
+
+    public void RestartGame()
+    {
+        // restart the game
+
+        // Unpause game
+        Time.timeScale = 1f;
+
+        // Set screen to game screen
+        currScreen = CurrScreen.Game;
+
+        // Reset score
+        scoreSystem.ResetScore();
+
+        // Reset Scene
+        int currentSceneIndex = SceneManager.GetActiveScene().buildIndex;
+
+        // Reload the current scene
+        SceneManager.LoadScene(currentSceneIndex);
+
+        //GameManager.Instance.GetComponent<WorldGenerator>().StartGen();
     }
 
     // UI
@@ -358,6 +397,7 @@ public class GameManager : MonoBehaviour
         camTargetSize = camSizeConnecting;
 
         sceneLoader = FindObjectOfType<SceneLoader>();
+        scoreSystem = GetComponent<ScoreSystem>();
     }
 
     private void Update()
@@ -727,7 +767,54 @@ public class GameManager : MonoBehaviour
 
 
             GUI.EndGroup();
-        }   
+        }
+        else if (currScreen == CurrScreen.GameOver)
+        {
+            // Adjust font size based on screen height
+            int fontSize = Mathf.RoundToInt(screenHeight / 20f);
+            GUI.skin.label.fontSize = fontSize;
+            GUI.skin.box.fontSize = fontSize;
+            GUI.skin.button.fontSize = fontSize;
+
+            // Game Over Screen
+            GUI.BeginGroup(new Rect(0, 0, screenWidth, screenHeight));
+
+            float boxHeight = screenHeight / 10f;
+            float buttonHeight = screenHeight / 15f;
+            float elementSpacing = screenHeight / 50f;
+
+            // Display High Score
+            GUI.Box(new Rect(10, elementSpacing, screenWidth - 20, boxHeight), "HighScore: " + highScore);
+
+            // Display Current Score
+            GUI.Box(new Rect(10, elementSpacing * 2 + boxHeight, screenWidth - 20, boxHeight), "Score: " + currentScore);
+
+            // Play Again Button
+            if (GUI.Button(new Rect(10, elementSpacing * 3 + boxHeight * 2, screenWidth - 20, buttonHeight), "Play Again"))
+            {
+                // Add logic to restart the game
+                Debug.Log("Play Again button clicked");
+                RestartGame();
+            }
+
+            // Return to Main Menu Button
+            if (GUI.Button(new Rect(10, elementSpacing * 4 + boxHeight * 3, screenWidth - 20, buttonHeight), "Main Menu"))
+            {
+                // Add logic to return to the main menu
+                Debug.Log("Return to Main Menu button clicked");
+                currScreen = CurrScreen.MainMenu;
+
+                // Unpause game
+                Time.timeScale = 1f;
+
+                // Reset score
+                scoreSystem.ResetScore();
+
+                SceneManager.LoadScene("UItest");
+            }
+
+            GUI.EndGroup();
+        }
     }
 
 }

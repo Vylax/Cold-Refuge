@@ -104,6 +104,28 @@ public class BonusManager : MonoBehaviour
     private void ApplyBonus(Bonus bonus)
     {
         // TODO: Apply selected buff here
+        // if the bonus name contains "speed", increase the player's speedFactor
+        // if the bonus name contains "health", increase the player's healthFactor
+        // if the bonus name contains "strength", increase the player's strengthFactor
+        // if the bonus name contains "range", increase the player's rangeFactor
+        Player player = GameObject.FindGameObjectWithTag("Player").GetComponent<Player>();
+
+        if(bonus.name.Contains("speed"))
+        {
+            player.speedFactor += 0.1f;
+        }
+        else if(bonus.name.Contains("health"))
+        {
+            player.healthFactor += 0.1f;
+        }
+        else if(bonus.name.Contains("strength"))
+        {
+            player.strengthFactor += 0.1f;
+        }
+        else if(bonus.name.Contains("range"))
+        {
+            player.rangeFactor += 0.1f;
+        }
 
         // Add bonus to the player's owned bonuses
         playerBonuses.Add(bonus);
@@ -177,11 +199,16 @@ public class BonusManager : MonoBehaviour
         {
             string buttonText = $"{drawnBonusPool[i].name}";
 
-            if (GUI.Button(BonusButtonRect(i, buttonText), buttonText, buttonTextStyle))
+            if (GUI.Button(BonusButtonRect(i, buttonText), GUIContent.none, buttonTextStyle))
             {
                 // Handle bonus selection logic here
                 ApplyBonus(drawnBonusPool[i]);
             }
+
+            float iconSize = buttonSize - 10f; // Adjust this value to leave some padding
+            Rect iconRect = new Rect(BonusButtonRect(i, buttonText).x + (buttonSize - iconSize) / 2f, BonusButtonRect(i, buttonText).y + (buttonSize - iconSize) / 2f, iconSize, iconSize);
+
+            GUI.DrawTexture(iconRect, drawnBonusPool[i].image, ScaleMode.ScaleToFit);
         }
 
         // Display the reroll option only if it wasn't called before
@@ -203,7 +230,7 @@ public class BonusManager : MonoBehaviour
 
             // Display GUI Box behind each owned bonus
             GUI.Box(new Rect(labelX - labelSpacing / 2, labelY - 5, labelWidth + labelSpacing, boxHeight), "");
-            GUI.Label(new Rect(labelX, labelY, labelWidth, labelHeight), "" + playerBonuses[i].name, centeredLabelStyle);
+            GUI.Label(new Rect(labelX, labelY, labelWidth, labelHeight), "" + playerBonuses[i].image, centeredLabelStyle);
             // You can also display the image using GUI.DrawTexture if you have the Texture2D
         }
     }

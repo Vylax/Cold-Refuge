@@ -42,11 +42,22 @@ public class WorldGenerator : MonoBehaviour
     public GameObject bonusPrefab;
 
 
-    void Start()
+    public void StartGen()
     {
+        Debug.Log("Starting world generation");
+        seed = $"azdasa{Time.time}jhidrghdlrg";
         Random.InitState(Seed);
         player = GameObject.FindGameObjectWithTag("Player").transform;
-        if (!astar) astar = AstarPath.active;
+        astar = AstarPath.active;
+
+        groundTilemap = GameObject.Find("Ground").GetComponent<Tilemap>();
+        obstacleTilemap = GameObject.Find("Obstacle").GetComponent<Tilemap>();
+        treeParent = GameObject.Find("Trees").transform;
+
+        generatedChunks = new HashSet<Vector3Int>();
+        graphs = new Dictionary<Vector3Int, GridGraph>();
+        graphOffsets = new Dictionary<Vector3Int, int>();
+
         StartCoroutine(GenerateChunksAroundPlayer());
     }
 
@@ -93,14 +104,17 @@ public class WorldGenerator : MonoBehaviour
 
     IEnumerator GenerateChunksAroundPlayer()
     {
+        Debug.Log("Generating chunks around player");
         while (true)
         {
             Vector3 playerPosition = player.position;
+            Debug.Log($"Player position: {playerPosition}");
             Vector3Int playerChunkPosition = new Vector3Int(
                 Mathf.FloorToInt(playerPosition.x / chunkSize) * chunkSize,
                 Mathf.FloorToInt(playerPosition.y / chunkSize) * chunkSize,
                 0
             );
+            Debug.Log($"Player chunk position: {playerChunkPosition}");
 
             for (int xOffset = -chunkSize; xOffset <= chunkSize; xOffset += chunkSize)
             {
