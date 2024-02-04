@@ -17,16 +17,16 @@
 "Survive the frozen apocalypse with mystical powers in Cold Refuge!"
 
 **Screenshots:**
-![Screenshot 0](pics/0.jpg | width=300)
-![Screenshot 1](pics/1.jpg | width=300)
-![Screenshot 2](pics/2.jpg | width=300)
-![Screenshot 3](pics/3.jpg | width=300)
-![Screenshot 4](pics/4.jpg | width=300)
-![Screenshot 5](pics/5.jpg | width=300)
-![Screenshot 6](pics/6.jpg | width=300)
-![Screenshot 7](pics/7.jpg | width=300)
-![Screenshot 8](pics/8.jpg | width=300)
-![Screenshot 9](pics/9.jpg | width=300)
+![Screenshot 0](pics/0.jpg =250x)
+![Screenshot 1](pics/1.jpg =250x)
+![Screenshot 2](pics/2.jpg =250x)
+![Screenshot 3](pics/3.jpg =250x)
+![Screenshot 4](pics/4.jpg =250x)
+![Screenshot 5](pics/5.jpg =250x)
+![Screenshot 6](pics/6.jpg =250x)
+![Screenshot 7](pics/7.jpg =250x)
+![Screenshot 8](pics/8.jpg =250x)
+![Screenshot 9](pics/9.jpg =250x)
 
 ## Permissions Required
 
