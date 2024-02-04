@@ -19,9 +19,40 @@ public class BonusManager : MonoBehaviour
     private bool wasCalledFromReroll = false;
 
     public bool debug = false;
+    private static BonusManager instance;
+
+    public static BonusManager Instance
+    {
+        get
+        {
+            if (instance == null)
+            {
+                instance = FindObjectOfType<BonusManager>();
+
+                if (instance == null)
+                {
+                    Debug.LogWarning("No BonusManager found in the scene. Creating a new one.");
+                    instance = GameManager.Instance.gameObject.AddComponent<BonusManager>();
+                }
+            }
+
+            // Return the instance
+            return instance;
+        }
+    }
 
     private void Awake()
     {
+        if (instance != null && instance != this)
+        {
+            Destroy(this);
+        }
+        else
+        {
+            instance = this;
+            DontDestroyOnLoad(gameObject);
+        }
+
         InitUI();
     }
 
@@ -161,7 +192,7 @@ public class BonusManager : MonoBehaviour
             if (GUI.Button(new Rect(centerX - adButtonWidth / 2, centerY + (buttonRadius + buttonSize * 3 / 2f) + 25, adButtonWidth, adButtonHeight), adButtonText, buttonTextStyle))
             {
                 // Handle ad logic and reroll bonus pool here
-                GameManager.Instance.GetComponent<AdDisplay>().TryShowAd();
+                Instance.GetComponent<AdDisplay>().TryShowAd(() => RerollBonusPool());
             }
         }
 
@@ -256,5 +287,13 @@ public class BonusManager : MonoBehaviour
         QueueBonus(tier);
     }
 
+    // Implement your logic to reroll the bonus pool here
+    private void RerollBonusPool()
+    {
+        // Add your logic to change or refresh the bonus pool
+        Debug.Log("Rerolling bonus pool...");
 
+        GetComponent<BonusManager>();
+        TriggerBonus(currBonusPoolTier, true);
+    }
 }

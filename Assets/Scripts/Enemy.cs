@@ -19,6 +19,11 @@ public class Enemy : MonoBehaviour
 
     public int damage = 10; // The amount of damage the enemy deals to the player
 
+    private int _health = 100;
+    public bool IsDead => _health <= 0;
+
+    public bool isKnockedBack = false;
+
     private Vector3 playerPos => player.GetComponent<Collider2D>().ClosestPoint(transform.position);
 
     void Start()
@@ -42,6 +47,12 @@ public class Enemy : MonoBehaviour
 
     void Update()
     {
+        if (IsDead || isKnockedBack)
+        {
+            aiPath.destination = transform.position;
+            return;
+        }
+
         // Update the target position (in case the player moves)
         if (player != null)
         {
@@ -51,6 +62,12 @@ public class Enemy : MonoBehaviour
 
     private void FixedUpdate()
     {
+        if (IsDead || isKnockedBack)
+        {
+            aiPath.destination = transform.position;
+            return;
+        }
+
         if (aiPath.desiredVelocity.x >= 0.01f)
         {
             transform.localScale = new Vector3(-1f, 1f, 1f);
@@ -64,7 +81,7 @@ public class Enemy : MonoBehaviour
 
         GetComponent<Animator>().SetBool("isMoving", isMoving);
 
-        if (Vector3.Distance(transform.position, playerPos) <= attackRange && !isAttacking)
+        if (Vector3.Distance(transform.position, playerPos) <= attackRange && !isAttacking && !GetPlayer().IsDead)
         {
             StartCoroutine(Attack());
         }
@@ -87,4 +104,31 @@ public class Enemy : MonoBehaviour
         GetComponent<Animator>().SetTrigger("StopAttack");
     }
 
+    public void TakeDamage(float damage)
+    {
+        _health -= Mathf.RoundToInt(damage);
+        Debug.Log("Enemy took " + damage + " damage. Health is now " + _health);
+
+        if (_health <= 0)
+        {
+            Die();
+        }
+        else
+        {
+            // set animator trigger "isHurt"
+            GetComponent<Animator>().SetTrigger("isHurt");
+        }
+    }
+
+    public void Die()
+    {
+        Debug.Log("Enemy died.");
+
+        // play death animation
+        GetComponent<Animator>().SetTrigger("isDead");
+        GetComponent<Collider2D>().enabled = false;
+        Destroy(gameObject, 2f);
+
+        // TODO: decrease WaveSystem enemy count by 1 here
+    }
 }

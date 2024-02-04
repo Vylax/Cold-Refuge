@@ -8,6 +8,8 @@ TagManager:
   - GameManager
   - A*
   - Enemy
+  - Bonus
+  - ItemSlot
   layers:
   - Default
   - TransparentFX
@@ -16,7 +18,7 @@ TagManager:
   - Water
   - UI
   - Obstacle
-  - 
+  - Enemy
   - 
   - 
   - 

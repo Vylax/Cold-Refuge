@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Advertisements;
+using System;
 
 public class AdDisplay : MonoBehaviour, IUnityAdsInitializationListener, IUnityAdsShowListener, IUnityAdsLoadListener
 {
@@ -13,6 +14,8 @@ public class AdDisplay : MonoBehaviour, IUnityAdsInitializationListener, IUnityA
 
     private float waitTime = 10f;
 
+    private Queue<Action> rewardQueue = new Queue<Action>();
+
     private void Start()
     {
         adStarted = false;
@@ -22,8 +25,9 @@ public class AdDisplay : MonoBehaviour, IUnityAdsInitializationListener, IUnityA
     /// <summary>
     /// Call this method when clicking the show Ad button
     /// </summary>
-    public void TryShowAd()
+    public void TryShowAd(Action rewardMethod)
     {
+        rewardQueue.Enqueue(rewardMethod);
         StartCoroutine(LoadAd());
     }
 
@@ -57,16 +61,6 @@ public class AdDisplay : MonoBehaviour, IUnityAdsInitializationListener, IUnityA
         }
     }
 
-    // Implement your logic to reroll the bonus pool here
-    private void RerollBonusPool()
-    {
-        // Add your logic to change or refresh the bonus pool
-        Debug.Log("Rerolling bonus pool...");
-
-        BonusManager bonusManager = GameManager.Instance.GetComponent<BonusManager>();
-        bonusManager.TriggerBonus(bonusManager.currBonusPoolTier, true);
-    }
-
     // If the ad successfully loads, add a listener to the button and enable it:
     public void OnUnityAdsAdLoaded(string adUnitId)
     {
@@ -79,12 +73,23 @@ public class AdDisplay : MonoBehaviour, IUnityAdsInitializationListener, IUnityA
         if (adUnitId.Equals(adUnitIdAndroid) && showCompletionState.Equals(UnityAdsShowCompletionState.COMPLETED))
         {
             Debug.Log("Unity Ads Rewarded Ad Completed");
-            // The player watched the ad and should get a reroll
-            RerollBonusPool();
+            
+            if (rewardQueue.Count > 0)
+            {
+                // Execute the first method in the queue
+                Action rewardMethod = rewardQueue.Dequeue();
+                rewardMethod.Invoke();
+            }
         }
 
         // reset teh bool
         adStarted = false;
+
+        // If the queue is not empty, start over
+        if (rewardQueue.Count > 0)
+        {
+            StartCoroutine(LoadAd());
+        }
     }
 
     // Implement Load and Show Listener error callbacks:

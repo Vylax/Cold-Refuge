@@ -8,7 +8,7 @@ public class BonusItem : MonoBehaviour
     {
         if (collision.CompareTag("Player"))
         {
-            GameManager.Instance.bonusManager.PickUpBonus();
+            BonusManager.Instance.PickUpBonus();
 
             // TODO: play sound
             // TODO: play animation

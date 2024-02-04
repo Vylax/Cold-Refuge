@@ -1,13 +1,13 @@
 using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 using static Utils;
 
 public class GameManager : MonoBehaviour
 {
     // Singleton instance
     private static GameManager instance;
-
-    public BonusManager bonusManager => this.GetComponent<BonusManager>();
 
     // Property to access the singleton instance
     public static GameManager Instance
@@ -37,7 +37,7 @@ public class GameManager : MonoBehaviour
         // Ensure there is only one instance of GameManager in the scene
         if (instance != null && instance != this)
         {
-            Destroy(gameObject);
+            Destroy(this);
         }
         else
         {
@@ -46,6 +46,17 @@ public class GameManager : MonoBehaviour
         }
 
         LoadSettings();
+
+        if (spinWheelPrefab == null)
+        {
+            // Load the SpinWheel prefab from Resources folder
+            spinWheelPrefab = Resources.Load<GameObject>("Prefabs/SpinWheel");
+
+            if (spinWheelPrefab == null)
+            {
+                Debug.LogError("SpinWheel prefab not found in Resources/Prefabs/SpinWheel.");
+            }
+        }
     }
 
     // Game state
@@ -54,10 +65,17 @@ public class GameManager : MonoBehaviour
 
     public string username = "";
 
+    public int consecutiveLoginDays = -1;
+    public bool dailyClaimed = false;
+    public int dailyUnlockItemId = -1;
+    public bool unlockAnimationPlaying = false;
+
     public bool buttonActive = true;
     public float buttonCooldown = 2f;
 
     public float serverTimeout = 10f;
+
+    public GameObject spinWheelPrefab;
 
     private void TryConnect()
     {
@@ -70,6 +88,25 @@ public class GameManager : MonoBehaviour
     {
         LockButton();
         StartCoroutine(Register(usernameField, emailField, passwordField));
+    }
+
+    private void TryGetDaily()
+    {
+        LockButton();
+        StartCoroutine(GetDaily(username));
+    }
+
+    private void TryUnlockReward()
+    {
+        Instance.GetComponent<AdDisplay>().TryShowAd(() => RewardUnlocked());
+    }
+
+    public void RewardUnlocked()
+    {
+        // TODO Play unlock animation here
+        SpawnAndInitializeSpinWheel();
+
+        dailyClaimed = true;
     }
 
     private IEnumerator LogIn(string username, string password)
@@ -152,6 +189,84 @@ public class GameManager : MonoBehaviour
         }
 
         UnlockButton();
+    }
+
+    private IEnumerator GetDaily(string username)
+    {
+        string post_url = $"{dailyURL}?username={username}";
+
+        // Post the URL to the site and create a download object to get the result.
+        WWW hs_post = new WWW(post_url);
+
+        float timeout = serverTimeout; // Set the timeout duration to 10 seconds
+
+        // Wait for either the download to complete or the timeout to occur
+        while (!hs_post.isDone && timeout > 0f)
+        {
+            yield return null;
+            timeout -= Time.deltaTime;
+        }
+
+        if (timeout <= 0f)
+        {
+            Debug.LogWarning("Daily reward request timed out");
+        }
+        else
+        {
+            // Download completed within the timeout duration
+            if (!hs_post.text.Contains("entry"))
+            {
+                Debug.LogWarning("There was an error: " + hs_post.text);
+                UnlockButton();
+            }
+            else
+            {
+                Debug.Log("Registered In successfully");
+                ProcessDailyQueryOutput(hs_post.text);
+            }
+        }
+    }
+
+    void ProcessDailyQueryOutput(string output)
+    {
+        // Check if the beginning of the string is "New"
+        bool isNew = output.StartsWith("New");
+
+        // Extract the username, date, and streak using regex
+        System.Text.RegularExpressions.Match match = System.Text.RegularExpressions.Regex.Match(output, @"for user (.+?): Day (\d{4}-\d{2}-\d{2}), Streak (\d+)$");
+
+        if (match.Success)
+        {
+            // Extract values from the regex match
+            string username = match.Groups[1].Value;
+            string dateString = match.Groups[2].Value;
+            string streakString = match.Groups[3].Value;
+
+            // Convert streakString to an actual integer
+            int streak;
+            if (int.TryParse(streakString, out streak))
+            {
+                // Call the method NewDaily
+                DisplayDaily(isNew, streak);
+            }
+            else
+            {
+                Debug.LogError("Error parsing streak value from PHP output.");
+            }
+        }
+        else
+        {
+            Debug.LogError("Error extracting data from PHP output.");
+        }
+        UnlockButton();
+    }
+
+    void DisplayDaily(bool isNew, int streak)
+    {
+        Debug.Log($"isNew: {isNew}, streak: {streak}");
+        currScreen = CurrScreen.DailyReward;
+
+        consecutiveLoginDays = streak;
     }
 
 
@@ -288,7 +403,7 @@ public class GameManager : MonoBehaviour
 
             if(currScreen != CurrScreen.Connection && currScreen != CurrScreen.MainMenu)
             {
-                if (Input.GetKeyDown(KeyCode.Escape))
+                if (Input.GetKeyDown(KeyCode.Escape) && !unlockAnimationPlaying)
                 {
                     currScreen = CurrScreen.MainMenu;
                 }
@@ -299,6 +414,79 @@ public class GameManager : MonoBehaviour
             // reset camera size
             Camera.main.orthographicSize = camDefaultSize;
         }
+    }
+
+    void SpawnAndInitializeSpinWheel()
+    {
+        GameObject spinWheelObject = Instantiate(spinWheelPrefab);
+        SpinWheel spinWheel = spinWheelObject.GetComponentInChildren<SpinWheel>();
+
+        if (spinWheel != null)
+        {
+            unlockAnimationPlaying = true;
+            List<int> randomIntegers = GenerateRandomIntegers();
+            List<Sprite> spriteList = new List<Sprite>();
+
+            for (int i = 0; i < randomIntegers.Count; i++)
+            {
+                Sprite sprite = LoadItemSprite(randomIntegers[i]);
+                spriteList.Add(sprite);
+            }
+
+            Transform roulette = spinWheelObject.transform.Find("Canvas").Find("Roulette");
+
+            if (roulette != null)
+            {
+                for (int i = 1; i <= 12; i++)
+                {
+                    Transform slot = roulette.Find("slot" + i);
+
+                    if (slot != null)
+                    {
+                        Transform itemTransform = slot.Find("item");
+
+                        if (itemTransform != null)
+                        {
+                             Image itemImage = itemTransform.GetComponent<Image>();
+
+                            if (itemImage != null && i <= spriteList.Count)
+                            {
+                                itemImage.sprite = spriteList[i - 1];
+                                itemTransform.gameObject.name = $"{randomIntegers[i - 1]}";
+                            }
+                            else
+                            {
+                                Debug.LogError($"'itemImage' not found as a component of 'item' in 'slot{i}'.");
+                            }
+                        }
+                        else
+                        {
+                            Debug.LogError($"'item' not found as a child of 'slot{i}'.");
+                        }
+                    }else
+                    {
+                        Debug.LogError($"'slot{i}' not found as a child of 'Roulette'.");
+                    }
+                }
+            }else
+            {
+                Debug.LogError("Roulette not found as a child of the instantiated object.");
+            }
+
+            spinWheel.Init(randomIntegers);
+        }
+        else
+        {
+            Debug.LogError("SpinWheel component not found on the instantiated object.");
+        }
+    }
+
+    public IEnumerator SpinWin(int reward, GameObject wheelParent)
+    {
+        yield return new WaitForSeconds(2f);
+        Destroy(wheelParent);
+        dailyUnlockItemId = reward;
+        unlockAnimationPlaying = false;
     }
 
     private string usernameField = "";
@@ -436,11 +624,11 @@ public class GameManager : MonoBehaviour
             }
 
             // Button to open daily reward menu
-            if (GUI.Button(new Rect(10, buttonSpacing * 3 + buttonHeight * 2, screenWidth - 20, buttonHeight), "Daily Reward"))
+            if (buttonActive && GUI.Button(new Rect(10, buttonSpacing * 3 + buttonHeight * 2, screenWidth - 20, buttonHeight), "Daily Reward"))
             {
                 // Handle daily reward button click
                 Debug.Log("Daily Reward Clicked");
-                currScreen = CurrScreen.DailyReward;
+                TryGetDaily();
             }
 
             // Button to open settings
@@ -491,6 +679,55 @@ public class GameManager : MonoBehaviour
                 SaveSettings();
             }
         }
+        else if(currScreen == CurrScreen.DailyReward && !unlockAnimationPlaying && !AdDisplay.adStarted)
+        {
+            // Adjust font size based on screen height
+            int fontSize = Mathf.RoundToInt(screenHeight / 25f);
+            GUI.skin.label.fontSize = fontSize;
+            GUI.skin.box.fontSize = fontSize;
+            GUI.skin.button.fontSize = fontSize;
+
+            // Daily Reward Section
+            GUI.BeginGroup(new Rect(0, 0, screenWidth, screenHeight));
+
+            float boxHeight = screenHeight / 10f;
+            float buttonHeight = screenHeight / 15f;
+            float elementSpacing = screenHeight / 50f;
+
+            // Display consecutive login days
+            GUI.Box(new Rect(10, elementSpacing, screenWidth - 20, boxHeight), "Login streak: " + consecutiveLoginDays);
+
+            // Unlock Reward Button
+            if(!dailyClaimed)
+            {
+                if (GUI.Button(new Rect(10, elementSpacing * 2 + boxHeight, screenWidth - 20, buttonHeight), "Claim today's reward"))
+                {
+                    TryUnlockReward();
+                }
+            }
+            else
+            {
+                // Display "Reward already claimed" message
+                GUI.Box(new Rect(10, elementSpacing * 2 + boxHeight, screenWidth - 20, boxHeight), "Reward already claimed");
+
+                // Display the item icon of the daily reward item
+                Texture itemTexture = LoadItemTexture(dailyUnlockItemId);
+                if (itemTexture != null)
+                {
+                    float iconSize = screenHeight / 15f;
+                    float textureAspect = (float)itemTexture.width / itemTexture.height;
+
+                    float drawWidth = iconSize;
+                    float drawHeight = iconSize / textureAspect;
+
+                    GUI.DrawTexture(new Rect((screenWidth - drawWidth) / 2, elementSpacing * 3 + boxHeight * 2, drawWidth, drawHeight), itemTexture);
+                }
+
+            }
+
+
+            GUI.EndGroup();
+        }   
     }
 
 }

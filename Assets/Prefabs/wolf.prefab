@@ -15,7 +15,7 @@ GameObject:
   - component: {fileID: 2833174424796812365}
   - component: {fileID: 2833174424796812354}
   - component: {fileID: 2833174424796812352}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: wolf
   m_TagString: Enemy
   m_Icon: {fileID: 0}
@@ -172,9 +172,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   player: {fileID: 0}
-  attackRange: 0.9
+  attackRange: 0.6
   attackCooldown: 1
   damage: 10
+  isKnockedBack: 0
 --- !u!58 &2833174424796812354
 CircleCollider2D:
   m_ObjectHideFlags: 0
