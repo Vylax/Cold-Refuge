@@ -17,7 +17,7 @@
 "Survive the frozen apocalypse with mystical powers in Cold Refuge!"
 
 **Screenshots:**
-![Screenshot 0](pics/0.jpg =250x)
+![Screenshot 0](pics/0.jpg =250x250)
 ![Screenshot 1](pics/1.jpg =250x)
 ![Screenshot 2](pics/2.jpg =250x)
 ![Screenshot 3](pics/3.jpg =250x)
